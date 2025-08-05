@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SD카드 용량 계산기 (홈카메라용)</title>
+    <title>하드디스크 용량 계산기</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -25,7 +25,7 @@
         .calculator-title {
             text-align: center;
             color: white;
-            background-color: #38b2ac; /* SD카드용으로 색상 변경 */
+            background-color: #004d99;
             padding: 12px;
             border-radius: 8px;
             font-size: 1.2em;
@@ -93,12 +93,12 @@
             transition: background-color 0.2s;
         }
         #calculate-button {
-            background-color: #38b2ac;
+            background-color: #007bff;
             color: white;
             margin-top: 20px;
         }
         #calculate-button:hover {
-            background-color: #319795;
+            background-color: #0056b3;
         }
         #reset-button {
             background-color: #f0f0f0;
@@ -119,13 +119,15 @@
 <body>
 
 <div class="calculator-container">
-    <div class="calculator-title">SD카드 용량 계산기</div>
+    <div class="calculator-title">하드디스크 (HDD) 용량계산기</div>
 
     <div class="input-group">
         <label for="resolution">해상도</label>
         <select id="resolution">
-            <option value="2">2 MP (FHD)</option>
-            <option value="4">4 MP (QHD)</option>
+            <option value="2">2 MP</option>
+            <option value="4">4 MP</option>
+            <option value="5">5 MP</option>
+            <option value="8">8 MP (4K)</option>
         </select>
         <span>MP</span>
     </div>
@@ -144,21 +146,19 @@
         </select>
         <span>FPS</span>
     </div>
+
+    <div class="input-group">
+        <label for="hdd-capacity">하드용량</label>
+        <input type="number" id="hdd-capacity" value="1" min="1">
+        <span>TB</span>
+    </div>
+
+    <div class="input-group">
+        <label for="recording-time">녹화시간</label>
+        <input type="number" id="recording-time" value="24" min="1">
+        <span>H</span>
+    </div>
     
-    <div class="input-group">
-        <label for="recording-mode">녹화 방식</label>
-        <select id="recording-mode">
-            <option value="continuous">24시간 연속 녹화</option>
-            <option value="motion">움직임 감지 녹화</option>
-        </select>
-    </div>
-
-    <div class="input-group">
-        <label for="sd-capacity">SD카드 용량</label>
-        <input type="number" id="sd-capacity" value="64" min="1">
-        <span>GB</span>
-    </div>
-
     <button id="calculate-button">계산</button>
     <button id="reset-button">RESET</button>
     
@@ -173,18 +173,19 @@
 
 <script>
 // 해상도, 프레임에 따른 1일당 용량 데이터 (대략적인 값, GB 기준)
-// 홈카메라의 효율을 고려하여 HDD용보다 용량 데이터를 조금 낮게 설정했습니다.
 const dailyData = {
-    '2': { '15': 10, '30': 20 }, 
-    '4': { '15': 20, '30': 40 },
+    '2': { '15': 15, '30': 30 }, 
+    '4': { '15': 30, '30': 60 },
+    '5': { '15': 40, '30': 80 },
+    '8': { '15': 60, '30': 120 },
 };
 
 // HTML 요소 가져오기
 const resolutionSelect = document.getElementById('resolution');
 const camerasInput = document.getElementById('cameras');
 const frameSelect = document.getElementById('frame');
-const recordingModeSelect = document.getElementById('recording-mode');
-const sdCapacityInput = document.getElementById('sd-capacity');
+const hddCapacityInput = document.getElementById('hdd-capacity');
+const recordingTimeInput = document.getElementById('recording-time');
 const resultDaysInput = document.getElementById('result-days');
 const calculateButton = document.getElementById('calculate-button');
 const resetButton = document.getElementById('reset-button');
@@ -194,20 +195,20 @@ function calculateDays() {
     const resolution = resolutionSelect.value;
     const cameras = camerasInput.value;
     const frame = frameSelect.value;
-    const recordingMode = recordingModeSelect.value;
-    const sdCapacity = sdCapacityInput.value;
+    const hddCapacity = hddCapacityInput.value;
+    const recordingTime = recordingTimeInput.value;
 
     // 선택된 해상도와 프레임에 따른 1일당 용량 가져오기 (GB)
     const dailyGbPerCamera = dailyData[resolution] ? dailyData[resolution][frame] : 0;
-    
-    // 녹화 방식에 따른 용량 절약율 (움직임 감지 녹화는 24시간 연속 녹화의 약 20% 용량만 사용한다고 가정)
-    const compressionMultiplier = (recordingMode === 'motion') ? 0.2 : 1;
 
     // 총 녹화 용량 계산 (1일 기준)
-    const totalDailyGb = dailyGbPerCamera * cameras * compressionMultiplier;
+    const totalDailyGb = dailyGbPerCamera * cameras * (recordingTime / 24);
+
+    // 총 하드디스크 용량 (GB)
+    const totalHddGb = hddCapacity * 1024; // 1TB = 1024GB
 
     // 녹화 가능 일수 계산
-    const recordingDays = totalDailyGb > 0 ? sdCapacity / totalDailyGb : 0;
+    const recordingDays = totalDailyGb > 0 ? totalHddGb / totalDailyGb : 0;
 
     // 결과를 반올림하여 정수 형태로 표시
     resultDaysInput.value = Math.round(recordingDays);
@@ -220,8 +221,8 @@ resetButton.addEventListener('click', () => {
     resolutionSelect.value = '2';
     camerasInput.value = '1';
     frameSelect.value = '30';
-    recordingModeSelect.value = 'continuous';
-    sdCapacityInput.value = '64';
+    hddCapacityInput.value = '1';
+    recordingTimeInput.value = '24';
     resultDaysInput.value = '';
 });
 </script>
