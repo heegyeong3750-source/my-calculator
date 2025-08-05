@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>하드디스크 용량 계산기</title>
+    <title>하드디스크 추천 용량 계산기</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -72,7 +72,7 @@
             font-weight: bold;
             color: #333;
         }
-        .result-group #result-days {
+        .result-group #result-capacity {
             flex-grow: 1;
             margin-left: 10px;
             padding: 8px;
@@ -119,7 +119,7 @@
 <body>
 
 <div class="calculator-container">
-    <div class="calculator-title">하드디스크 (HDD) 용량계산기</div>
+    <div class="calculator-title">하드디스크 추천 용량 계산기</div>
 
     <div class="input-group">
         <label for="resolution">해상도</label>
@@ -146,26 +146,26 @@
         </select>
         <span>FPS</span>
     </div>
-
-    <div class="input-group">
-        <label for="hdd-capacity">하드용량</label>
-        <input type="number" id="hdd-capacity" value="1" min="1">
-        <span>TB</span>
-    </div>
-
+    
     <div class="input-group">
         <label for="recording-time">녹화시간</label>
         <input type="number" id="recording-time" value="24" min="1">
         <span>H</span>
     </div>
-    
-    <button id="calculate-button">계산</button>
+
+    <div class="input-group">
+        <label for="desired-days">원하는 녹화일수</label>
+        <input type="number" id="desired-days" value="30" min="1">
+        <span>일</span>
+    </div>
+
+    <button id="calculate-button">추천 용량 계산</button>
     <button id="reset-button">RESET</button>
     
     <div class="result-group">
-        <label>녹화일수(약</label>
-        <input type="text" id="result-days" readonly>
-        <span>일)</span>
+        <label>추천 하드 용량(약</label>
+        <input type="text" id="result-capacity" readonly>
+        <span>TB)</span>
     </div>
     
     <p class="disclaimer">※방식이나 상품에 따라 차이가 있을 수 있으니 참고만 해주세요.</p>
@@ -184,19 +184,19 @@ const dailyData = {
 const resolutionSelect = document.getElementById('resolution');
 const camerasInput = document.getElementById('cameras');
 const frameSelect = document.getElementById('frame');
-const hddCapacityInput = document.getElementById('hdd-capacity');
 const recordingTimeInput = document.getElementById('recording-time');
-const resultDaysInput = document.getElementById('result-days');
+const desiredDaysInput = document.getElementById('desired-days');
+const resultCapacityInput = document.getElementById('result-capacity');
 const calculateButton = document.getElementById('calculate-button');
 const resetButton = document.getElementById('reset-button');
 
 // 계산 함수
-function calculateDays() {
+function calculateCapacity() {
     const resolution = resolutionSelect.value;
     const cameras = camerasInput.value;
     const frame = frameSelect.value;
-    const hddCapacity = hddCapacityInput.value;
     const recordingTime = recordingTimeInput.value;
+    const desiredDays = desiredDaysInput.value;
 
     // 선택된 해상도와 프레임에 따른 1일당 용량 가져오기 (GB)
     const dailyGbPerCamera = dailyData[resolution] ? dailyData[resolution][frame] : 0;
@@ -204,26 +204,26 @@ function calculateDays() {
     // 총 녹화 용량 계산 (1일 기준)
     const totalDailyGb = dailyGbPerCamera * cameras * (recordingTime / 24);
 
-    // 총 하드디스크 용량 (GB)
-    const totalHddGb = hddCapacity * 1024; // 1TB = 1024GB
+    // 원하는 일수만큼의 총 용량 (GB) 계산
+    const totalGbRequired = totalDailyGb * desiredDays;
 
-    // 녹화 가능 일수 계산
-    const recordingDays = totalDailyGb > 0 ? totalHddGb / totalDailyGb : 0;
+    // TB 단위로 변환 (1TB = 1024GB)
+    const recommendedTb = totalGbRequired / 1024;
 
-    // 결과를 반올림하여 정수 형태로 표시
-    resultDaysInput.value = Math.round(recordingDays);
+    // 결과를 소수점 첫째 자리까지 반올림하여 표시
+    resultCapacityInput.value = Math.round(recommendedTb * 10) / 10;
 }
 
 // 이벤트 리스너 연결
-calculateButton.addEventListener('click', calculateDays);
+calculateButton.addEventListener('click', calculateCapacity);
 resetButton.addEventListener('click', () => {
     // 초기값으로 리셋
     resolutionSelect.value = '2';
     camerasInput.value = '1';
     frameSelect.value = '30';
-    hddCapacityInput.value = '1';
     recordingTimeInput.value = '24';
-    resultDaysInput.value = '';
+    desiredDaysInput.value = '30';
+    resultCapacityInput.value = '';
 });
 </script>
 
